@@ -1,0 +1,4 @@
+src/*.o
+src/*.dll.so
+src/*.dll.fake
+*~
