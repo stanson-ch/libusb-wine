@@ -4,9 +4,9 @@ This is libusb-win32 for Wine.
 Some Windows applications use libusb-win32. This Wine DLL allows to run
 such Windows applications under Wine using native Linux USB stack.
 
-1. Prerequisites: Wine with winegcc and winebuild
+Prerequisites: Wine with winegcc and winebuild
 
-2. Building and installing:
+Building and installing:
 
     $ cd src
     $ make
