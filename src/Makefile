@@ -7,7 +7,6 @@ CFLAGS = -g -O2 \
   -Wall \
   -pipe \
   -fno-strict-aliasing \
-  -Wdeclaration-after-statement \
   -Wempty-body \
   -Wignored-qualifiers \
   -Wstrict-prototypes \
@@ -17,6 +16,7 @@ CFLAGS = -g -O2 \
   -Wwrite-strings \
   -Wpointer-arith \
   -Wlogical-op \
+  -Wno-format-truncation \
   -gdwarf-2 \
   -gstrict-dwarf \
   -fno-omit-frame-pointer
@@ -61,6 +61,6 @@ uninstall::
   $(DESTDIR)$(dlldir)/$(PROJ).def
 
 clean::
-	rm -f *.def *.a *.o *.so *.fake
+	rm -f *.def *.a *.o *.so *.fake *.exe
 
 .PHONY: all install install-lib install-dev uninstall clean

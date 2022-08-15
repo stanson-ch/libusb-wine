@@ -15,6 +15,10 @@ Testing, Technical support:
 
 Xiaofan Chen, <xiaofanc@gmail.com>
 
-ported to wine
+ported to wine:
 
 Andrew (Stanson) Kozin, <me@stanson.ch>
+
+Added bulk async functions as in libusb-win32:
+
+some person who'd like to remain anonymous

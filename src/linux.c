@@ -737,3 +737,174 @@ int usb_detach_kernel_driver_np(usb_dev_handle *dev, int interface)
 
   return 0;
 }
+
+
+// -------------------------------------------------------------------------------
+// this async functions added by some person who'd like to remain anonymous
+// It was necessary to make Aerodrums application run under wine.
+
+typedef struct {
+	usb_dev_handle *dev;
+	char *bytes;
+	int size;
+	struct usb_urb urb;
+	int reaped;
+} usb_context_t;
+
+static int _usb_setup_async(usb_dev_handle *dev, void **context,
+                            int urbtype,
+                            unsigned char ep, int pktsize)
+{
+	usb_context_t **c = (usb_context_t **)context;
+
+	/* Any error checks required here? */
+
+	*c = malloc(sizeof(usb_context_t));
+
+	if (!*c) {
+		USB_ERROR_STR(-errno, "memory allocation error: %s\n", strerror(errno));
+		return -ENOMEM;
+	}
+
+	memset(*c, 0, sizeof(usb_context_t));
+
+	(*c)->dev = dev;
+	(*c)->urb.type = urbtype;
+	(*c)->urb.endpoint = ep;
+	(*c)->urb.flags = 0;
+	(*c)->urb.signr = 0;
+	(*c)->urb.actual_length = 0;
+	(*c)->urb.number_of_packets = 0;	/* don't do isochronous yet */
+	(*c)->urb.usercontext = NULL;
+
+	return 0;
+}
+
+int usb_bulk_setup_async(usb_dev_handle *dev, void **context, unsigned char ep)
+{
+	return _usb_setup_async(dev, context, USB_URB_TYPE_BULK, ep, 0);
+}
+
+/* Reading and writing are the same except for the endpoint */
+int usb_submit_async(void *context, char *bytes, int size)
+{
+	int ret;
+
+	usb_context_t *c = (usb_context_t *)context;
+
+	c->urb.buffer = bytes;
+	c->urb.buffer_length = size;
+	c->urb.usercontext = c;
+	c->reaped = 0;
+
+	ret = ioctl(c->dev->fd, IOCTL_USB_SUBMITURB, &c->urb);
+	if (ret < 0) {
+		USB_ERROR_STR(-errno, "error submitting URB: %s", strerror(errno));
+		return ret;
+	}
+
+	return 0;
+}
+
+static int _usb_reap_async(void *context, int timeout, int cancel)
+{
+	int rc;
+	usb_context_t *c = (usb_context_t *)context;
+	struct usb_urb *urb;
+
+	if (c->reaped)
+		return c->urb.actual_length;
+
+again:
+	rc = ioctl(c->dev->fd, IOCTL_USB_REAPURB, &urb);
+	if (rc < 0) {
+		fprintf(stderr, "error reaping URB: %s", strerror(errno));
+		return rc;
+	}
+
+	usb_context_t *b = (usb_context_t *)urb->usercontext;
+	if (b != c) {
+		b->reaped = 1;
+		goto again;
+	}
+
+#if 0
+	/* Not ready for usb_cancel_async */
+	if (cancel) {
+		usb_cancel_async(context);
+	}
+#else
+	(void)cancel;
+#endif
+	return urb->actual_length;
+}
+
+int usb_reap_async(void *context, int timeout)
+{
+	return _usb_reap_async(context, timeout, 1);
+}
+
+int usb_reap_async_nocancel(void *context, int timeout)
+{
+	return _usb_reap_async(context, timeout, 0);
+}
+
+
+int usb_cancel_async(void *context)
+{
+	printf("%s()\n", __func__);
+	USB_ERROR_STR(-errno, "usb_cancel_async is not yet implemented: %s\n", strerror(errno));
+#if 0
+    /* NOTE that this function will cancel all pending URBs */
+    /* on the same endpoint as this particular context, or even */
+    /* all pending URBs for this particular device. */
+
+    usb_context_t *c = (usb_context_t *)context;
+
+    if (!c)
+    {
+        USBERR0("invalid context\n");
+        return -EINVAL;
+    }
+
+    if (c->dev->impl_info == INVALID_HANDLE_VALUE)
+    {
+        USBERR0("device not open\n");
+        return -EINVAL;
+    }
+
+    _usb_cancel_io(c);
+
+    return 0;
+#endif
+	int rc;
+	usb_context_t *c = (usb_context_t *)context;
+
+	rc = ioctl(c->dev->fd, IOCTL_USB_DISCARDURB, &c->urb);
+	if (rc < 0)
+		fprintf(stderr, "error discarding URB: %s", strerror(errno));
+
+	/*
+	* When the URB is unlinked, it gets moved to the completed list and
+	* then we need to reap it or else the next time we call this function,
+	* we'll get the previous completion and exit early
+	*/
+	ioctl(c->dev->fd, IOCTL_USB_REAPURB, &context);
+
+	return 0;
+}
+
+int usb_free_async(void **context)
+{
+	usb_context_t **c = (usb_context_t **)context;
+
+	if (!*c) {
+		USB_ERROR_STR(-errno, "invalid context: %s\n", strerror(errno));
+		return -EINVAL;
+	}
+
+	free(*c);
+	*c = NULL;
+
+	return 0;
+}

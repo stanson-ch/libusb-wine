@@ -24,3 +24,8 @@
 @ cdecl usb_device                     (ptr)
 @ cdecl usb_get_busses                 ()
 @ cdecl usb_get_version                ()
+@ cdecl usb_bulk_setup_async           (ptr ptr long)
+@ cdecl usb_submit_async               (ptr ptr long)
+@ cdecl usb_reap_async                 (ptr long)
+@ cdecl usb_free_async                 (ptr)
+@ cdecl usb_cancel_async               (ptr)

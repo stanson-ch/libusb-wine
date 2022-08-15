@@ -339,6 +339,15 @@ int usb_find_devices(void);
 struct usb_device *usb_device(usb_dev_handle *dev);
 struct usb_bus *usb_get_busses(void);
 
+
+int usb_bulk_setup_async(usb_dev_handle *dev, void **context,
+                     unsigned char ep);
+
+int usb_submit_async(void *context, char *bytes, int size);
+int usb_reap_async(void *context, int timeout);
+int usb_free_async(void **context);
+int usb_cancel_async (void *context);
+
 #ifdef __cplusplus
 }
 #endif
