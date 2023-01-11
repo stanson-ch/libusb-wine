@@ -2,7 +2,7 @@ all:
 
 PROJ = libusb0
 
-CFLAGS = -g -O2 \
+CFLAGS = -g -O2 -m32 \
   -fPIC \
   -Wall \
   -pipe \
@@ -21,7 +21,7 @@ CFLAGS = -g -O2 \
   -gstrict-dwarf \
   -fno-omit-frame-pointer
 
-LDFLAGS =
+LDFLAGS = -m32
 
 OBJS = linux.o error.o usb.o descriptors.o usb-wine.o
 
