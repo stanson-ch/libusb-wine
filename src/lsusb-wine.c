@@ -1,7 +1,8 @@
 /*
- * Test utility for libusb-wine.
- * compile with winegcc -o lsusb-wine lsusb-wine.c -lusb0
- * run as ./lsusb-wine.exe, it should list VID/PIDs of connected USB devices
+ * Test utility for libusb-wine: lists the VID:PID of each device it sees.
+ * After make -f Makefile.x64 install install-dev (see README.md):
+ *   winegcc -o lsusb-wine lsusb-wine.c -lusb0
+ *   wine lsusb-wine.exe.so
  */
 
 #include <stdio.h>

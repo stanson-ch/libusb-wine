@@ -90,6 +90,16 @@ struct usb_hub_portinfo {
 	unsigned char port[127];	/* port to device num mapping */
 };
 
+struct usb_disconnect_claim {
+	/* keep in sync with usbdevice_fs.h:usbdevfs_disconnect_claim */
+	unsigned int interface;
+	unsigned int flags;
+	char driver[USB_MAXDRIVERNAME + 1];
+};
+
+#define USB_DISCONNECT_CLAIM_IF_DRIVER		0x01
+#define USB_DISCONNECT_CLAIM_EXCEPT_DRIVER	0x02
+
 #define IOCTL_USB_CONTROL	_IOWR('U', 0, struct usb_ctrltransfer)
 #define IOCTL_USB_BULK		_IOWR('U', 2, struct usb_bulktransfer)
 #define IOCTL_USB_RESETEP	_IOR('U', 3, unsigned int)
@@ -109,6 +119,7 @@ struct usb_hub_portinfo {
 #define IOCTL_USB_CLEAR_HALT	_IOR('U', 21, unsigned int)
 #define IOCTL_USB_DISCONNECT	_IO('U', 22)
 #define IOCTL_USB_CONNECT	_IO('U', 23)
+#define IOCTL_USB_DISCONNECT_CLAIM	_IOR('U', 27, struct usb_disconnect_claim)
 
 /*
  * IOCTL_USB_HUB_PORTINFO, IOCTL_USB_DISCONNECT and IOCTL_USB_CONNECT

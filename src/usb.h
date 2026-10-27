@@ -27,6 +27,25 @@
 
 #define LIBUSB_PATH_MAX 512
 
+/*
+ * Calling convention of the API.
+ *
+ * Windows programs call these functions with the Microsoft x64 convention:
+ * arguments in rcx, rdx, r8 and r9, and rsi and rdi preserved. This library
+ * is built by the Linux compiler, whose x86-64 default is the System V
+ * convention (arguments in rdi, rsi, ...), and winebuild puts nothing in
+ * between. So every exported function has to say which convention it uses.
+ * gcc makes the attribute part of the function's type: a definition that
+ * leaves it out conflicts with its prototype here and does not compile.
+ *
+ * On 32-bit x86 the program and the library both use cdecl.
+ */
+#ifdef __x86_64__
+#define LIBUSB_API __attribute__((ms_abi))
+#else
+#define LIBUSB_API
+#endif
+
 
 /*
  * Device and/or Interface Class codes
@@ -290,63 +309,66 @@ extern "C" {
 /* Function prototypes */
 
 /* usb.c */
-usb_dev_handle *usb_open(struct usb_device *dev);
-int usb_close(usb_dev_handle *dev);
-int usb_get_string(usb_dev_handle *dev, int index, int langid, char *buf,
-	size_t buflen);
-int usb_get_string_simple(usb_dev_handle *dev, int index, char *buf,
-	size_t buflen);
+LIBUSB_API usb_dev_handle *usb_open(struct usb_device *dev);
+LIBUSB_API int usb_close(usb_dev_handle *dev);
+LIBUSB_API int usb_get_string(usb_dev_handle *dev, int index, int langid,
+	char *buf, size_t buflen);
+LIBUSB_API int usb_get_string_simple(usb_dev_handle *dev, int index,
+	char *buf, size_t buflen);
 
 /* descriptors.c */
-int usb_get_descriptor_by_endpoint(usb_dev_handle *udev, int ep,
+LIBUSB_API int usb_get_descriptor_by_endpoint(usb_dev_handle *udev, int ep,
 	unsigned char type, unsigned char index, void *buf, int size);
-int usb_get_descriptor(usb_dev_handle *udev, unsigned char type,
+LIBUSB_API int usb_get_descriptor(usb_dev_handle *udev, unsigned char type,
 	unsigned char index, void *buf, int size);
 
 /* <arch>.c */
-int usb_bulk_write(usb_dev_handle *dev, int ep, char *bytes, int size,
-	int timeout);
-int usb_bulk_read(usb_dev_handle *dev, int ep, char *bytes, int size,
-	int timeout);
-int usb_interrupt_write(usb_dev_handle *dev, int ep, char *bytes, int size,
-        int timeout);
-int usb_interrupt_read(usb_dev_handle *dev, int ep, char *bytes, int size,
-        int timeout);
-int usb_control_msg(usb_dev_handle *dev, int requesttype, int request,
-	int value, int index, char *bytes, int size, int timeout);
-int usb_set_configuration(usb_dev_handle *dev, int configuration);
-int usb_claim_interface(usb_dev_handle *dev, int interface);
-int usb_release_interface(usb_dev_handle *dev, int interface);
-int usb_set_altinterface(usb_dev_handle *dev, int alternate);
-int usb_resetep(usb_dev_handle *dev, unsigned int ep);
-int usb_clear_halt(usb_dev_handle *dev, unsigned int ep);
-int usb_reset(usb_dev_handle *dev);
+LIBUSB_API int usb_bulk_write(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout);
+LIBUSB_API int usb_bulk_read(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout);
+LIBUSB_API int usb_interrupt_write(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout);
+LIBUSB_API int usb_interrupt_read(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout);
+LIBUSB_API int usb_control_msg(usb_dev_handle *dev, int requesttype,
+	int request, int value, int index, char *bytes, int size, int timeout);
+LIBUSB_API int usb_set_configuration(usb_dev_handle *dev, int configuration);
+LIBUSB_API int usb_claim_interface(usb_dev_handle *dev, int interface);
+LIBUSB_API int usb_release_interface(usb_dev_handle *dev, int interface);
+LIBUSB_API int usb_set_altinterface(usb_dev_handle *dev, int alternate);
+LIBUSB_API int usb_resetep(usb_dev_handle *dev, unsigned int ep);
+LIBUSB_API int usb_clear_halt(usb_dev_handle *dev, unsigned int ep);
+LIBUSB_API int usb_reset(usb_dev_handle *dev);
 
 #if 1
 #define LIBUSB_HAS_GET_DRIVER_NP 1
-int usb_get_driver_np(usb_dev_handle *dev, int interface, char *name,
-	unsigned int namelen);
+LIBUSB_API int usb_get_driver_np(usb_dev_handle *dev, int interface,
+	char *name, unsigned int namelen);
 #define LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP 1
-int usb_detach_kernel_driver_np(usb_dev_handle *dev, int interface);
+LIBUSB_API int usb_detach_kernel_driver_np(usb_dev_handle *dev, int interface);
 #endif
 
-const char *usb_strerror(void);
+LIBUSB_API const char *usb_strerror(void);
 
-void usb_init(void);
-void usb_set_debug(int level);
-int usb_find_busses(void);
-int usb_find_devices(void);
-struct usb_device *usb_device(usb_dev_handle *dev);
-struct usb_bus *usb_get_busses(void);
+LIBUSB_API void usb_init(void);
+LIBUSB_API void usb_set_debug(int level);
+LIBUSB_API int usb_find_busses(void);
+LIBUSB_API int usb_find_devices(void);
+LIBUSB_API struct usb_device *usb_device(usb_dev_handle *dev);
+LIBUSB_API struct usb_bus *usb_get_busses(void);
 
 
-int usb_bulk_setup_async(usb_dev_handle *dev, void **context,
-                     unsigned char ep);
+LIBUSB_API int usb_bulk_setup_async(usb_dev_handle *dev, void **context,
+	unsigned char ep);
+LIBUSB_API int usb_interrupt_setup_async(usb_dev_handle *dev, void **context,
+	unsigned char ep);
 
-int usb_submit_async(void *context, char *bytes, int size);
-int usb_reap_async(void *context, int timeout);
-int usb_free_async(void **context);
-int usb_cancel_async (void *context);
+LIBUSB_API int usb_submit_async(void *context, char *bytes, int size);
+LIBUSB_API int usb_reap_async(void *context, int timeout);
+LIBUSB_API int usb_reap_async_nocancel(void *context, int timeout);
+LIBUSB_API int usb_free_async(void **context);
+LIBUSB_API int usb_cancel_async(void *context);
 
 #ifdef __cplusplus
 }

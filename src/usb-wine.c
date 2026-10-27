@@ -3,7 +3,9 @@
  * Stanson <me@stanson.ch>
  */
 
+#include <stdarg.h>
 #include <windef.h>
+#include <winbase.h>
 #include "usb-wine.h"
 
 static struct usb_version _usb_version = {
@@ -14,9 +16,14 @@ static struct usb_version _usb_version = {
   { -1, -1, -1, -1 }
 };
 
-const struct usb_version *usb_get_version(void)
+LIBUSB_API const struct usb_version *usb_get_version(void)
 {
   return &_usb_version;
+}
+
+void usbwine_set_last_error(unsigned int code)
+{
+  SetLastError(code);
 }
 
 /* DLL main entry point */
